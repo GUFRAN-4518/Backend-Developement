@@ -4,8 +4,8 @@ import cookieParser from 'cookie-parser'
 
 const app = express()
 app.use(cors({
-    origin: "https://youtube-frontend-lime.vercel.app",
-    // origin: "http://localhost:5173",
+    // origin: "https://youtube-frontend-lime.vercel.app",
+    origin: "http://localhost:5173",
     credentials: true,
 }))
 
@@ -34,7 +34,7 @@ app.use("/api/v1/subscriptions", subscriptionRouter)
 app.use("/api/v1/videos", videoRouter)
 app.use("/api/v1/comments", commentRouter)
 app.use("/api/v1/likes", likeRouter)
-app.use("/api/v1/playlist", playlistRouter)
+app.use("/api/v1/playlists", playlistRouter)
 app.use("/api/v1/dashboard", dashboardRouter)
 
 export {app}
