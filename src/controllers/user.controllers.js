@@ -124,10 +124,10 @@ const loginUser = asyncHandler(async (req, res) => {
     // send cookie
     const options = {
         httpOnly: true,
-        // secure: false,
-        secure: true,
-        // sameSite: "lax"
-        sameSite: "none"
+        secure: false,
+        // secure: true,
+        sameSite: "lax"
+        // sameSite: "none"
     }
 
     return res
@@ -330,7 +330,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         req.user?._id,
         {
             $set: {
-                coverimage: coverImage.url,
+                coverimage: coverImage.secure_url,
             }
         },
         { new: true }
