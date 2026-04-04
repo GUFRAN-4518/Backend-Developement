@@ -9,10 +9,10 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 
 // testing done on postman
 const toggleVideoLike = asyncHandler(async (req, res) => {
-    const {videoId} = req.params
-    //TODO: toggle like on video
-    if(!isValidObjectId(videoId)){
-        throw new ApiError(400, "Invalid video ID")
+    const { videoId } = req.params;
+
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(400, "Invalid video ID");
     }
 
     const video = await Video.findById(videoId);
@@ -24,35 +24,55 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
         video: videoId,
         likedBy: req.user._id
     });
-    
-    if(existingLike){
+
+    let liked;
+
+    if (existingLike) {
         await Like.findByIdAndDelete(existingLike._id);
-        return res
-            .status(200)
-            .json(
-                new ApiResponse(
-                    200,
-                    null,
-                    "Video unliked successfully"
-                )
-            )
+        liked = false;
+    } else {
+        await Like.create({
+            video: videoId,
+            likedBy: req.user._id
+        });
+        liked = true;
     }
-    
-    const newLike = await Like.create({
+
+    const likesCount = await Like.countDocuments({ video: videoId });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                liked,
+                likesCount
+            },
+            liked ? "Video liked successfully" : "Video unliked successfully"
+        )
+    );
+});
+
+const getLikeStatus = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+
+    const existingLike = await Like.findOne({
         video: videoId,
         likedBy: req.user._id
     });
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                newLike,
-                "Video liked successfully"
-            )
+    const likesCount = await Like.countDocuments({ video: videoId });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                liked: !!existingLike,
+                likesCount
+            },
+            "Like status fetched"
         )
-})
+    );
+});
 
 // testing done on postman
 const toggleCommentLike = asyncHandler(async (req, res) => {
@@ -206,5 +226,6 @@ export {
     toggleVideoLike,
     getLikedVideos,
     getLikedComments,
-    getLikedTweets
+    getLikedTweets,
+    getLikeStatus
 }

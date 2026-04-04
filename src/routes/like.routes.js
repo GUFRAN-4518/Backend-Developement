@@ -5,7 +5,8 @@ import {
     toggleVideoLike,
     toggleTweetLike,
     getLikedComments,
-    getLikedTweets
+    getLikedTweets,
+    getLikeStatus
 } from "../controllers/like.controllers.js"
 import {verifyJWT} from "../middlewares/authentication.middlewares.js"
 
@@ -18,5 +19,5 @@ router.route("/toggle/t/:tweetId").post(toggleTweetLike);
 router.route("/videos").get(getLikedVideos);
 router.route("/comments").get(getLikedComments);
 router.route("/tweets").get(getLikedTweets);
-
+router.get("/status/v/:videoId", verifyJWT, getLikeStatus);
 export default router
