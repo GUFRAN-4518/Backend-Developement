@@ -128,6 +128,7 @@ const loginUser = asyncHandler(async (req, res) => {
         secure: true,
         // sameSite: "lax"
         sameSite: "none"
+        path: "/", 
     }
 
     return res
