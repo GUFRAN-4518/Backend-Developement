@@ -109,29 +109,31 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 // testing done on postman
 const getVideoById = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
+    const { videoId } = req.params;
     if (!isValidObjectId(videoId)) {
-        throw new ApiError(400, "Invalid video id")
+        throw new ApiError(400, "Invalid video id");
     }
 
-    //TODO: get video by id
+    // Adding .lean() converts the document and populated fields into plain JS objects instantly
     const video = await Video.findById(videoId)
-        .populate("owner", "username avatar subscribersCount");
+        .populate("owner", "username avatar")
+        .lean();
 
     if (!video) {
-        throw new ApiError(404, "Video not found")
+        throw new ApiError(404, "Video not found");
     }
 
+    if (!video.isPublished) {
+        throw new ApiError(403, "Video is not published");
+    }
+
+    // Fetch the real-time aggregate count
     const subscribersCount = await Subscription.countDocuments({
         channel: video.owner._id
     });
 
-    video.owner = video.owner.toObject();
+    // This assignment is now guaranteed to stick because video is a raw object
     video.owner.subscribersCount = subscribersCount;
-
-    if (!video.isPublished) {
-        throw new ApiError(403, "Video is not published")
-    }
 
     return res
         .status(200)
@@ -141,8 +143,8 @@ const getVideoById = asyncHandler(async (req, res) => {
                 video,
                 "Video fetched successfully"
             )
-        )
-})
+        );
+});
 
 // testing done on postman
 const updateVideo = asyncHandler(async (req, res) => {

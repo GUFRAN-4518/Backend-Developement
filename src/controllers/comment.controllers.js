@@ -30,7 +30,6 @@ const getVideoComments = asyncHandler(async (req, res) => {
 
 // testing done on postman
 const addComment = asyncHandler(async (req, res) => {
-    // TODO: add a comment to a video
     const {content} = req.body || {};
     const {videoId} = req.params;
 
@@ -38,26 +37,29 @@ const addComment = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Comment content is required");
     }
 
-    const comments = await Comment.create({
+    const comment = await Comment.create({
         content,
         video: videoId,
         owner: req.user._id
     })
 
-    if(!comments){
+    if(!comment){
         throw new ApiError(500, "Failed to add comment");
     }
+
+    // CRITICAL FIX: Populate owner details immediately on creation
+    await comment.populate("owner", "username avatar");
 
     return res
         .status(201)
         .json(
             new ApiResponse(
                 201,
-                comments,
+                comment,
                 "Comment added successfully"
             )
         )
-})
+});
 
 // testing done on postman
 const updateComment = asyncHandler(async (req, res) => {

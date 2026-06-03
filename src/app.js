@@ -4,10 +4,7 @@ import cookieParser from 'cookie-parser'
 
 const app = express()
 app.use(cors({
-    origin: [
-        "https://youtube-frontend-lime.vercel.app",
-        "https://clipjoy-eight.vercel.app"
-    ],
+    origin: "https://clipjoy-eight.vercel.app",
     // origin: "http://localhost:5173",
     credentials: true,
 }))
