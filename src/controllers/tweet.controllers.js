@@ -7,7 +7,6 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 
 // testing done on postman
 const createTweet = asyncHandler(async (req, res) => {
-    //TODO: create tweet
     const {content} = req.body || {};
     if(!content?.trim()){
         throw new ApiError(401, "Tweet Content is required");
@@ -31,7 +30,6 @@ const createTweet = asyncHandler(async (req, res) => {
 
 // testing done on postman
 const getUserTweets = asyncHandler(async (req, res) => {
-    // TODO: get user tweets
     const tweets = await Tweet.find({
         owner: req.user._id
     }).sort({ createdAt: -1})
@@ -44,7 +42,6 @@ const getUserTweets = asyncHandler(async (req, res) => {
 
 // testing done on postman
 const updateTweet = asyncHandler(async (req, res) => {
-    //TODO: update tweet
     const {tweetId} = req.params;
     const {content} = req.body || {}
 
@@ -82,7 +79,6 @@ const updateTweet = asyncHandler(async (req, res) => {
 
 // testing done on postman
 const deleteTweet = asyncHandler(async (req, res) => {
-    //TODO: delete tweet
     const {tweetId} = req.params
     
     const deletedTweet = await Tweet.findByIdAndDelete({

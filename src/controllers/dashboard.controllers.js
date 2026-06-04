@@ -15,13 +15,11 @@ const getChannelStats = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid Channel ID")
     }
 
-    // Ensure channel exists
     const channelExists = await User.exists({ _id: channelId });
     if (!channelExists) {
         throw new ApiError(404, "Channel not found")
     }
 
-    // Get all videos of this channel
     const videos = await Video.find({ owner: channelId })
         .select("_id views")
 
@@ -34,12 +32,10 @@ const getChannelStats = asyncHandler(async (req, res) => {
 
     const videoIds = videos.map(video => video._id)
 
-    // Count subscribers
     const totalSubscribers = await Subscription.countDocuments({
         channel: channelId
     })
 
-    // Count likes on channel videos
     const totalLikes = videoIds.length > 0
         ? await Like.countDocuments({
               video: { $in: videoIds }
@@ -64,14 +60,12 @@ const getChannelStats = asyncHandler(async (req, res) => {
 
 
 const getChannelVideos = asyncHandler(async (req, res) => {
-    // TODO: Get all the videos uploaded by the channel
         const channelId = req.user._id
 
         const { page = 1, limit = 10 } = req.query;
 
         const skip = (Number(page) - 1) * Number(limit);
         
-        // Ensure channel exists
         const channelExists = await User.exists({ _id: channelId });
         if (!channelExists) {
             throw new ApiError(404, "Channel not found")

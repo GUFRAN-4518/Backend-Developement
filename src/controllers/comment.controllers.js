@@ -6,7 +6,6 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 
 // testing done on postman
 const getVideoComments = asyncHandler(async (req, res) => {
-    //TODO: get all comments for a video
     const {videoId} = req.params
     const {page = 1, limit = 10} = req.query
     
@@ -47,7 +46,6 @@ const addComment = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to add comment");
     }
 
-    // CRITICAL FIX: Populate owner details immediately on creation
     await comment.populate("owner", "username avatar");
 
     return res
@@ -63,7 +61,6 @@ const addComment = asyncHandler(async (req, res) => {
 
 // testing done on postman
 const updateComment = asyncHandler(async (req, res) => {
-    // TODO: update a comment
     const {videoId, commentId} = req.params;
     const {content} = req.body;
     if(!content?.trim()){
@@ -100,7 +97,6 @@ const updateComment = asyncHandler(async (req, res) => {
 
 // testing done on postman
 const deleteComment = asyncHandler(async (req, res) => {
-    // TODO: delete a comment
     const {commentId} = req.params;
 
     const deletedComment = await Comment.findByIdAndDelete({

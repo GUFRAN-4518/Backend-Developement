@@ -18,6 +18,11 @@ const videoSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    embedding: {
+        type: [Number],
+        required: false,
+        select: false
+    },
     duration: {
         type: Number,
         required: true
@@ -34,7 +39,7 @@ const videoSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }
-}, {timestamps: true})
+}, { timestamps: true })
 
 videoSchema.plugin(mongooseAggregatePaginate)
 

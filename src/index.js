@@ -17,25 +17,3 @@ connectDB()
     console.log("MONGODB CONNECTION FAILED !!!", error);
     
 })
-
-/*
-import express from "express";
-const app = express()
-
-(async ()=>{
-    try {
-        await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`)
-        app.on("error", (error)=>{
-            console.log("ERR: ", error)
-            throw error
-        })
-
-        app.listen(process.env.PORT, ()=>{
-            console.log(`APP IS LISTENING TO ${process.env.PORT}`);
-        })
-    } catch (error) {
-        console.error("ERROR AA GAYA BHAI: ", error)
-        throw error
-    }
-})()
-*/

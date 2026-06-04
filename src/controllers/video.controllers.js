@@ -6,18 +6,12 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { Subscription } from "../models/subscription.models.js"
+import { generateVideoMetadataAndTranscript, generateTextEmbedding } from "../utils/ai.js";
 
 // testing done on postman
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
-    //TODO: get all videos based on query, sort, pagination
+    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
     const filter = { isPublished: true };
-    // const filter = { isPublished: false }; -> to get unpublished videos of a user, we can use this filter along with userId filter
-    // const filter = { }; -> to get all videos irrespective of published or unpublished, we can use this filter along with userId filter
-
-    if (query) {
-        filter.title = { $regex: query, $options: "i" };
-    }
 
     if (userId) {
         if (!isValidObjectId(userId)) {
@@ -31,39 +25,81 @@ const getAllVideos = asyncHandler(async (req, res) => {
     if (sortBy && allowedSortFields.includes(sortBy)) {
         sortOptions[sortBy] = sortType === "asc" ? 1 : -1;
     } else {
-        // Default sorting by creation date descending
         sortOptions.createdAt = -1;
     }
 
     const skip = (Number(page) - 1) * Number(limit);
-    const videos = await Video.find(filter)
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(Number(limit))
-        .populate("owner", "username avatar");
+    let videos = [];
+
+    if (query?.trim()) {
+        const queryVector = await generateTextEmbedding(query);
+
+        if (queryVector) {
+            const pipeline = [
+                {
+                    $vectorSearch: {
+                        index: "vector_index",
+                        path: "embedding",
+                        queryVector: queryVector,
+                        numCandidates: 100,
+                        limit: Number(limit) * 5 
+                    }
+                },
+                {
+                    $match: filter 
+                },
+                {
+                    $sort: sortOptions
+                },
+                {
+                    $skip: skip
+                },
+                {
+                    $limit: Number(limit)
+                }
+            ];
+
+            videos = await Video.aggregate(pipeline);
+            
+            await Video.populate(videos, { path: "owner", select: "username avatar" });
+        } else {
+            filter.$or = [
+                { title: { $regex: query, $options: "i" } },
+                { description: { $regex: query, $options: "i" } }
+            ];
+            
+            videos = await Video.find(filter)
+                .sort(sortOptions)
+                .skip(skip)
+                .limit(Number(limit))
+                .populate("owner", "username avatar");
+        }
+    } else {
+        videos = await Video.find(filter)
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(Number(limit))
+            .populate("owner", "username avatar");
+    }
 
     return res
         .status(200)
         .json(
             new ApiResponse(
-                200,
-                videos,
+                200, 
+                videos, 
                 "All videos fetched successfully"
             )
-        )
-})
+        );
+});
 
 // testing done on postman
 const publishAVideo = asyncHandler(async (req, res) => {
-    const { title, description } = req.body
-    // TODO: get video, upload to cloudinary, create video
-
-    if (!title?.trim()) {
-        throw new ApiError(400, "Title is required");
-    }
+    const { title, description, useAI } = req.body
 
     const videoFileLocalPath = req.files?.videoFile?.[0]?.path;
     const thumbnailLocalPath = req.files?.thumbnail?.[0]?.path;
+    const mimeType = req.files?.videoFile?.[0]?.mimetype || "video/mp4";
 
     if (!videoFileLocalPath) {
         throw new ApiError(400, "Video is required");
@@ -72,19 +108,37 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Thumbnail is required");
     }
 
+    if (useAI !== "true" && useAI !== true && !title?.trim()) {
+        throw new ApiError(400, "Title is required if not using AI optimization");
+    }
+
+    let aiMetadata = null;
+    if (useAI === "true" || useAI === true) {
+        aiMetadata = await generateVideoMetadataAndTranscript(videoFileLocalPath, mimeType);
+    }
+
     const videoFile = await uploadOnCloudinary(videoFileLocalPath);
     const thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
 
-    if (!videoFile?.url) {
-        throw new ApiError(400, "Video is required");
-    }
-    if (!thumbnail?.url) {
-        throw new ApiError(400, "Thumbnail is required");
+    if (!videoFile?.url || !thumbnail?.url) {
+        throw new ApiError(400, "Media upload failed");
     }
 
+    const finalTitle = aiMetadata?.title || title;
+
+    let finalDescription = aiMetadata?.description || description || "";
+    if (aiMetadata?.transcript) {
+        finalDescription += `\n\n--- AI Generated Transcript ---\n${aiMetadata.transcript}`;
+
+    }
+    const textToEmbed = `Title: ${finalTitle}. Description: ${finalDescription}`;
+
+    const vectorEmbedding = await generateTextEmbedding(textToEmbed);
+    
     const video = await Video.create({
-        title,
-        description,
+        title: finalTitle,
+        description: finalDescription,
+        embedding: vectorEmbedding,
         videoFile: videoFile.secure_url,
         thumbnail: thumbnail.secure_url,
         owner: req.user._id,
@@ -98,14 +152,8 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
     return res
         .status(201)
-        .json(
-            new ApiResponse(
-                201,
-                video,
-                "Video published successfully"
-            )
-        )
-})
+        .json(new ApiResponse(201, video, "Video published successfully"));
+});
 
 // testing done on postman
 const getVideoById = asyncHandler(async (req, res) => {
@@ -127,12 +175,10 @@ const getVideoById = asyncHandler(async (req, res) => {
         throw new ApiError(403, "Video is not published");
     }
 
-    // Fetch the real-time aggregate count
     const subscribersCount = await Subscription.countDocuments({
         channel: video.owner._id
     });
 
-    // This assignment is now guaranteed to stick because video is a raw object
     video.owner.subscribersCount = subscribersCount;
 
     return res
@@ -152,7 +198,6 @@ const updateVideo = asyncHandler(async (req, res) => {
     if (!isValidObjectId(videoId)) {
         throw new ApiError(400, "Invalid video id")
     }
-    //TODO: update video details like title, description, thumbnail
     const { title, description } = req.body || {};
     const thumbnailLocalPath = req.file?.path;
 
@@ -184,7 +229,7 @@ const updateVideo = asyncHandler(async (req, res) => {
             $set: updatedFields
 
         },
-        { new: true }
+        { returnDocument: "after" }
     );
 
     if (!updatedVideo) {

@@ -14,7 +14,7 @@ export const addView = asyncHandler(async (req, res) => {
   const video = await Video.findByIdAndUpdate(
     videoId,
     { $inc: { views: 1 } },
-    { new: true }
+    { returnDocument: "after" }
   );
 
   if (!video) {

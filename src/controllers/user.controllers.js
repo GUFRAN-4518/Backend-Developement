@@ -25,12 +25,6 @@ const generateAccessAndRefreshTokens = async (userId) => {
 const registerUser = asyncHandler(async (req, res) => {
     // get user details from frontend
     const { username, fullname, password, email } = req.body || {}
-    // console.log("USERNAME : ", username)
-    // console.log("FULLNAME : ", fullname)
-    // console.log("PASSWORD : ", password)
-    // console.log("EMAIL : ", email)
-    // console.log("REQ.FILES =>", req.files)
-    // console.log("BODY =>", req.body);
 
     // validation - not empty, email format, password strength
     if (
@@ -126,7 +120,6 @@ const loginUser = asyncHandler(async (req, res) => {
         httpOnly: true,
         // secure: false,
         // sameSite: "lax"
-
         secure: true,
         sameSite: "none",
     }
@@ -342,8 +335,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     )
 })
 
-
-
+// testing done on postman
 const getUserChannelProfile = asyncHandler(async (req, res) => {
     const { username } = req.params;
 
@@ -445,91 +437,6 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     );
 });
 
-
-// // testing done on postman
-// const getUserChannelProfile = asyncHandler(async (req, res) => {
-//     const { username } = req.params
-
-//     if (!username?.trim()) {
-//         throw new ApiError(400, "username is missing")
-//     }
-
-
-//     const userDoc = await User.findOne({
-//         username: username.toLowerCase()
-//     });
-
-//     if (!userDoc) {
-//         throw new ApiError(404, "Channel does not exist");
-//     }
-
-//     // chat gpt 
-//     const channel = await User.aggregate([
-//         {
-//             $match: { _id: userDoc._id }
-//         },
-//         {
-//             $lookup: {
-//                 from: "subscriptions",
-//                 localField: "_id",
-//                 foreignField: "channel",
-//                 as: "subscribers"
-//             }
-//         },
-//         {
-//             $lookup: {
-//                 from: "subscriptions",
-//                 localField: "_id",
-//                 foreignField: "subscriber",
-//                 as: "subscribedTo"
-//             }
-//         },
-//         {
-//             $addFields: {
-//                 subscriberIds: {
-//                     $map: {
-//                         input: "$subscribers",
-//                         as: "s",
-//                         in: "$$s.subscriber"
-//                     }
-//                 }
-//             }
-//         },
-//         {
-//             $addFields: {
-//                 subscribersCount: { $size: "$subscribers" },
-//                 channelsSubscribedToCount: { $size: "$subscribedTo" },
-//                 isSubscribed: {
-//                     $in: [req.user._id, "$subscriberIds"]
-//                 }
-//             }
-//         },
-//         {
-//             $project: {
-//                 username: 1,
-//                 fullname: 1,
-//                 avatar: 1,
-//                 coverImage: 1,
-//                 subscribersCount: 1,
-//                 channelsSubscribedToCount: 1,
-//                 isSubscribed: 1
-//             }
-//         }
-//     ]);
-
-//     if (!channel?.length) {
-//         throw new ApiError(404, "Channel does not exist")
-//     }
-
-
-//     return res
-//         .status(200)
-//         .json(
-//             new ApiResponse(200, channel[0], "User channel fetched successfully")
-//         )
-// })
-
-
 // testing done on postman
 const getWatchHistory = asyncHandler(async (req, res) => {
     const user = await User.aggregate([
@@ -584,8 +491,6 @@ const getWatchHistory = asyncHandler(async (req, res) => {
             )
         )
 })
-
-
 
 export {
     registerUser,

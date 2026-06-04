@@ -39,7 +39,6 @@ const toggleSubscription = asyncHandler(async (req, res) => {
         subscribed = true;
     }
 
-    // Get live count
     const subscribersCount = await Subscription.countDocuments({ channel: channelId });
 
     return res.status(200).json(
@@ -54,7 +53,6 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 // testing done on postman
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     const {channelId} = req.params
-    // controller to return subscriber list of a channel
     if(!isValidObjectId(channelId)){
         throw new ApiError(400, "Invalid Channel ID");
     }
@@ -78,7 +76,6 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 
 // testing done on postman
 const getSubscribedChannels = asyncHandler(async (req, res) => {
-    // controller to return channel list to which user has subscribed
     const { subscriberId } = req.params
     if(!isValidObjectId(subscriberId)){
         throw new ApiError(400, "Invalid Subscriber ID");
@@ -110,7 +107,6 @@ const getSubscriptionStatus = asyncHandler(async (req, res) => {
     subscriber: req.user._id,
   });
 
-  // Get live count
   const subscribersCount = await Subscription.countDocuments({ channel: channelId });
 
   return res.status(200).json({

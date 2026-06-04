@@ -8,7 +8,6 @@ import { asyncHandler } from "../utils/asyncHandler.js"
 // testing done on postman
 const createPlaylist = asyncHandler(async (req, res) => {
     const { name, description } = req.body
-    //TODO: create playlist
     if (!name?.trim()) {
         throw new ApiError(400, "Playlist Name is required")
     }
@@ -35,7 +34,6 @@ const createPlaylist = asyncHandler(async (req, res) => {
 // testing done on postman
 const getUserPlaylists = asyncHandler(async (req, res) => {
     const { userId } = req.params
-    //TODO: get user playlists
     if (!isValidObjectId(userId)) {
         throw new ApiError(400, "Invalid User ID");
     }
@@ -63,7 +61,6 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
 // testing done on postman
 const getPlaylistById = asyncHandler(async (req, res) => {
     const { playlistId } = req.params
-    //TODO: get playlist by id
 
     if (!isValidObjectId(playlistId)) {
         throw new ApiError(400, "Invalid Playlist ID")
@@ -110,7 +107,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
         {
             $addToSet: { videos: videoId }
         },
-        { new: true }
+        { returnDocument: "after" }
     );
 
     if (!playlist) {
@@ -127,7 +124,6 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 // testing done on postman
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     const { playlistId, videoId } = req.params
-    // TODO: remove video from playlist
     if (!isValidObjectId(playlistId) || !isValidObjectId(videoId)) {
         throw new ApiError(400, "Invalid Playlist ID or Video ID")
     }
@@ -163,7 +159,6 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
 // testing done on postman
 const deletePlaylist = asyncHandler(async (req, res) => {
     const { playlistId } = req.params
-    // TODO: delete playlist
     if (!isValidObjectId(playlistId)) {
         throw new ApiError(400, "Invalid Playlist ID")
     }
@@ -213,7 +208,7 @@ const updatePlaylist = asyncHandler(async (req, res) => {
         {
             $set: updatedData
         },
-        {new: true}
+        {returnDocument: "after" }
     )
 
     if(!updatedPlaylist){
