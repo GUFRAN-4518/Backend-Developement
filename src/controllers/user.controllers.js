@@ -120,6 +120,7 @@ const loginUser = asyncHandler(async (req, res) => {
         httpOnly: true,
         // secure: false,
         // sameSite: "lax"
+        
         secure: true,
         sameSite: "none",
     }
@@ -324,7 +325,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         req.user?._id,
         {
             $set: {
-                coverimage: coverImage.secure_url,
+                coverImage: coverImage.secure_url,
             }
         },
         { new: true }
@@ -417,7 +418,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
                 username: 1,
                 fullname: 1,
                 avatar: 1,
-                coverImage: "$coverimage",
+                coverImage: 1,
                 subscribersCount: 1,
                 videos: 1
             }
