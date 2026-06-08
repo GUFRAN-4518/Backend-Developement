@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser'
 
 const app = express()
 
+app.set("trust proxy", 1)
 app.use(cors({
     origin: "https://clipjoy-eight.vercel.app",
     // origin: "http://localhost:5173",
