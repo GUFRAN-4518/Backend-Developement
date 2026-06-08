@@ -126,7 +126,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
     const finalTitle = aiMetadata?.title || title;
 
-    let finalDescription = aiMetadata?.description || description || "";
+    let finalDescription = aiMetadata?.description || description || " ";
     if (aiMetadata?.transcript) {
         finalDescription += `\n\n--- AI Generated Transcript ---\n${aiMetadata.transcript}`;
 

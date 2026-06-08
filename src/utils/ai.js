@@ -78,8 +78,7 @@ export const generateTextEmbedding = async (text) => {
     }
 
     try {
-        // We use text-embedding-004, Google's latest model for semantic vectors
-        const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+        const model = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
         
         const result = await model.embedContent(text);
         
